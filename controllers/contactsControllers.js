@@ -3,10 +3,7 @@ import {HttpError} from "../helpers/index.js";
 import Contact from "../models/contact.js";
 
 export const listContacts = async (req, res) => {
-  const {_id: owner} =req.user;
-  const {page =1, limit = 10} =req.query;
-  const skip =(page - 1) * limit;
-  const result = await Contact.find({owner}, "-createdAT - updateAt", {skip:2, limit:2}).populate("owner", "name email");
+  const result = await Contact.find();
   res.status(200).json(result);
   console.log("результат", result)
 };
@@ -21,8 +18,7 @@ export const getById = async (req, res) => {
 };
 
 export const addContact = async (req, res) => {
-  const {_id: owner} =req.user
-  const result = await Contact.create(...req.body, owner);
+  const result = await Contact.create(req.body);
   res.status(201).json(result);
   
 };

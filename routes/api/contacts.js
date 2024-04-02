@@ -1,31 +1,23 @@
-import express from "express";
+import Joi from "joi";
 
-import contactSchema from "../../schema/contactsSchema.js"
-import ctrlContacts from "../../controllers/ctrlContacts.js";
+export const addSchema = Joi.object({
+  name: Joi.string().min(2).max(20).required().messages({
+    "any.required": "missing required name field",
+  }),
 
-import { authenticate, isValidId } from "../../middlewars/index.js";
-import {validateBody} from "../../decorators/index.js";
+  phone: Joi.string().required().messages({
+    "any.required": "missing required phone field",
+  }),
 
-const contactRouter = express.Router();
+  email: Joi.string().required().messages({
+    "any.required": "missing required email field",
+  }),
 
+  favorite: Joi.boolean()
+});
 
-const contactAddValidate = validateBody(contactSchema.addSchema);
-const contactUpdateFavoriteSchema = validateBody(contactSchema.updateFavoriteSchema)
+export const updateFavoriteSchema = Joi.object({
+  favorite: Joi.boolean().required().messages({ "any.required": "missing required favorite field"}),
+});
 
-
-contactRouter.use(authenticate)
-
-contactRouter.get("/", ctrlContacts.listContacts) 
-
-contactRouter.get("/:contactId", isValidId, ctrlContacts.getById);
-
-contactRouter.post("/", contactAddValidate, ctrlContacts.addContact);
-
-contactRouter.put("/:contactId", isValidId, contactAddValidate, ctrlContacts.updateContact );
-
-contactRouter.patch("/:contactId/favorite", isValidId, contactUpdateFavoriteSchema, ctrlContacts.updateStatusContact );
-
-contactRouter.delete("/:contactId", isValidId, ctrlContacts.removeContact);
-
-export default contactRouter
-  
+export default { addSchema, updateFavoriteSchema };
