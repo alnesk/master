@@ -14,10 +14,7 @@ export const addSchema = Joi.object({
   }),
 
   favorite: Joi.boolean()
-})
-.min(1)
-.message({ 'object.min': 'Body must have at least one field' });
-
+});
 
 export const updateFavoriteSchema = Joi.object({
   favorite: Joi.boolean().required().messages({ "any.required": "missing required favorite field"}),
