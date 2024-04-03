@@ -1,26 +1,24 @@
-import { ctrlWrapper } from "../decorators/index.js";
-import { HttpError } from "../helpers/index.js";
-import User from "../models/User.js";
-import jwt from "jsonwebtoken";
-const {SECRET_KEY} = process.env;
+import jwt from 'jsonwebtoken';
+import HttpError from '../helpers/HttpError.js';
+import authServices from '../services/authService.js';
 
+const { JWT_SECRET } = process.env;
 
-const authenticate = async (req, res, next) =>
-{ const {authorization = ""} = req.headers;
-const [bearer, accessToken] = authorization.split("");
-if(bearer !== "Bearer" || !accessToken) {
-    throw HttpError(401);
-}
-try {
-    const {id} = jwt.verify(accessToken,SECRET_KEY );
-    const user = await User.findById(id)
-    if (!user || user.accessToken) { throw HttpError(401);}
-    user = req.user;
+const authenticate = async (req, res, next) => {
+  const { authorization } = req.headers;
+  if (!authorization) return next(HttpError(401, 'Not authorized'));
+  const [bearer, token] = authorization.split(' ');
+  if (bearer !== 'Bearer') return next(HttpError(401, 'Not authorized'));
+  try {
+    const { id } = jwt.verify(token, JWT_SECRET);
+    const user = await authServices.findUser({ _id: id });
+    if (!user) return next(HttpError(401, 'User not found'));
+    if (!user.token) return next(HttpError(401, 'Not authorized'));
+    req.user = user;
     next();
-}
-catch {
-    throw HttpError(401);
-}
-}
+  } catch (error) {
+    next(HttpError(401, 'Not authorized'));
+  }
+};
 
-export default ctrlWrapper(authenticate);
+export default authenticate;

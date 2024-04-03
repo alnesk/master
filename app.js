@@ -1,31 +1,41 @@
-import express from 'express'
-import logger from 'morgan'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import contactRouter from './routes/api/contacts.js'
-import authRouter from './routes/api/auth.js'
+import express from 'express';
+import morgan from 'morgan';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import 'dotenv/config';
 
+import contactsRouter from './routes/contactsRouter.js';
+import authRouter from './routes/authRouter.js';
 
-dotenv.config()
+const { DB_HOST, PORT } = process.env;
 
-const app = express()
+const app = express();
 
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short'
+app.use(morgan('tiny'));
+app.use(cors());
+app.use(express.json());
 
-app.use(logger(formatsLogger))
-app.use(cors())
-app.use(express.json())
+app.use('/api/users', authRouter);
+app.use('/api/contacts', contactsRouter);
 
-
-app.use('/api/contacts', contactRouter)
-
-app.use('/api/auth', authRouter)
-app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' })
-})
+app.use((_, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message })
-})
+  const { status = 500, message = 'Server error' } = err;
+  res.status(status).json({ message });
+});
 
-export default app
+mongoose
+  .connect(DB_HOST)
+  .then(() => {
+    console.log('Database connection successful');
+    app.listen(PORT, () => {
+      console.log(`Server is running. Use our API on port: ${PORT}`);
+    });
+  })
+  .catch(error => {
+    console.error(error.message);
+    process.exit(1);
+  });

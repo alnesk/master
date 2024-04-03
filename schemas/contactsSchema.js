@@ -1,23 +1,23 @@
-import Joi from "joi";
+import Joi from 'joi';
+import { emailRegexp } from '../constants/constants.js';
+import { phoneRegexp } from '../constants/contactsConstants.js';
 
-export const addSchema = Joi.object({
-  name: Joi.string().min(2).max(20).required().messages({
-    "any.required": "missing required name field",
-  }),
-
-  phone: Joi.string().required().messages({
-    "any.required": "missing required phone field",
-  }),
-
-  email: Joi.string().required().messages({
-    "any.required": "missing required email field",
-  }),
-
-  favorite: Joi.boolean()
+export const addContactSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().pattern(emailRegexp).required(),
+  phone: Joi.string().pattern(phoneRegexp).required(),
+  favorite: Joi.boolean().default(false),
 });
 
-export const updateFavoriteSchema = Joi.object({
-  favorite: Joi.boolean().required().messages({ "any.required": "missing required favorite field"}),
-});
+export const updateContactSchema = Joi.object({
+  name: Joi.string(),
+  email: Joi.string().pattern(emailRegexp),
+  phone: Joi.string().pattern(phoneRegexp),
+  favorite: Joi.boolean(),
+})
+  .min(1)
+  .message('Body must have at least one field');
 
-export default { addSchema, updateFavoriteSchema };
+export const updateContactStatusSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});
